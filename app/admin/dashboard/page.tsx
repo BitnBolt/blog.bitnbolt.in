@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, Edit, Trash, FileText, Layers, File } from 'lucide-react';
+import { Plus, Edit, Trash, FileText, Layers, File, BookOpen } from 'lucide-react';
 import AdminLayout from '../components/AdminLayout';
 
 interface IBlog {
@@ -16,6 +16,7 @@ interface IBlog {
 export default function AdminDashboard() {
     const [blogs, setBlogs] = useState<IBlog[]>([]);
     const [categoriesCount, setCategoriesCount] = useState(0);
+    const [learnStats, setLearnStats] = useState({ chapters: 0, modules: 0 });
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
@@ -25,16 +26,24 @@ export default function AdminDashboard() {
 
     const fetchData = async () => {
         try {
-            const [blogsRes, catsRes] = await Promise.all([
+            const [blogsRes, catsRes, learnRes] = await Promise.all([
                 fetch('/api/blogs'),
-                fetch('/api/categories')
+                fetch('/api/categories'),
+                fetch('/api/learn')
             ]);
 
             const blogsData = await blogsRes.json();
             const catsData = await catsRes.json();
+            const learnData = await learnRes.json();
 
             if (blogsData.success) setBlogs(blogsData.data);
             if (catsData.success) setCategoriesCount(catsData.data.length);
+
+            if (Array.isArray(learnData)) {
+                const chapters = learnData.length;
+                const modules = learnData.reduce((acc: number, ch: any) => acc + (ch.modules?.length || 0), 0);
+                setLearnStats({ chapters, modules });
+            }
 
         } catch (error) {
             console.error('Failed to fetch data', error);
@@ -92,6 +101,19 @@ export default function AdminDashboard() {
                         <div>
                             <div className="text-xs text-gray-400 uppercase tracking-wider font-bold">Categories</div>
                             <div className="text-2xl font-bold">{categoriesCount}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="bg-[#111] border border-white/10 p-6 rounded-lg">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-emerald-400/10 text-emerald-400 rounded-lg">
+                            <BookOpen className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <div className="text-xs text-gray-400 uppercase tracking-wider font-bold">Learn Modules</div>
+                            <div className="text-2xl font-bold">{learnStats.modules} <span className="text-sm font-normal text-gray-500">in {learnStats.chapters} ch</span></div>
+                            <Link href="/admin/learn" className="text-xs text-cyan-400 hover:underline mt-1 block">Manage Curriculum</Link>
                         </div>
                     </div>
                 </div>

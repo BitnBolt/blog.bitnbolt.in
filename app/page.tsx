@@ -1,17 +1,15 @@
 "use client";
 
-import React, { useRef } from 'react';
-import { motion, useScroll, useTransform, useInView } from 'framer-motion';
+import React, { useRef, useState, useEffect } from 'react';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import {
   Cpu,
   Layers,
-  Terminal,
   Zap,
-  BookOpen,
-  Code,
-  Settings,
   ChevronRight,
-  ArrowRight
+  ArrowRight,
+  Menu,
+  X
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -32,6 +30,9 @@ const staggerContainer = {
 
 export default function Home() {
   const targetRef = useRef(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [chapters, setChapters] = useState<any[]>([]);
+
   const { scrollYProgress } = useScroll({
     target: targetRef,
     offset: ["start start", "end start"]
@@ -40,8 +41,21 @@ export default function Home() {
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
   const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.8]);
 
+  useEffect(() => {
+    // Fetch Curriculum Preview
+    fetch('/api/learn')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          // limit to 6 chapters
+          setChapters(data.slice(0, 6));
+        }
+      })
+      .catch(err => console.error(err));
+  }, []);
+
   return (
-    <div className="bg-[#0a0a0a] text-white selection:bg-cyan-500 selection:text-black">
+    <div className="bg-[#0a0a0a] text-white selection:bg-cyan-500 selection:text-black font-sans">
       {/* Navigation */}
       <nav className="fixed top-0 w-full z-50 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -49,24 +63,71 @@ export default function Home() {
             <Zap className="h-6 w-6 text-cyan-400" />
             <span>BITNBOLT<span className="text-cyan-400">.</span></span>
           </Link>
+
+          {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-400">
             <Link href="/learn" className="hover:text-cyan-400 transition-colors">Learn</Link>
             <Link href="/blog" className="hover:text-cyan-400 transition-colors">Blog</Link>
             <a href="#levels" className="hover:text-cyan-400 transition-colors">Levels</a>
             <a href="#kit" className="hover:text-cyan-400 transition-colors">The Kit</a>
           </div>
-          <Link href="#kit" className="bg-white text-black px-4 py-2 text-sm font-bold hover:bg-cyan-400 transition-colors">
-            Get The Kit
-          </Link>
+
+          <div className="hidden md:block">
+            <Link href="#kit" className="bg-white text-black px-4 py-2 text-sm font-bold hover:bg-cyan-400 transition-colors">
+              Get The Kit
+            </Link>
+          </div>
+
+          {/* Mobile Menu Trigger */}
+          <button
+            className="md:hidden text-gray-400 hover:text-white"
+            onClick={() => setIsMobileMenuOpen(true)}
+            aria-label="Open Menu"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
         </div>
       </nav>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed inset-0 z-60 bg-[#0a0a0a] flex flex-col p-6 md:hidden"
+          >
+            <div className="flex justify-between items-center mb-12">
+              <div className="flex items-center gap-2 font-bold text-xl tracking-tighter">
+                <Zap className="h-6 w-6 text-cyan-400" />
+                <span>BITNBOLT<span className="text-cyan-400">.</span></span>
+              </div>
+              <button onClick={() => setIsMobileMenuOpen(false)}>
+                <X className="w-8 h-8 text-gray-400" />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-6 text-2xl font-bold flex-1 text-gray-300">
+              <Link href="/learn" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-cyan-400 transition-colors">Learn</Link>
+              <Link href="/blog" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-cyan-400 transition-colors">Blog</Link>
+              <a href="#levels" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-cyan-400 transition-colors">Levels</a>
+              <a href="#kit" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-cyan-400 transition-colors">The Kit</a>
+            </div>
+
+            <Link href="#kit" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-white text-black py-4 text-center font-bold hover:bg-cyan-400 transition-colors mt-auto">
+              Get The Kit
+            </Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Hero Section */}
       <section ref={targetRef} className="relative h-screen flex items-center justify-center overflow-hidden pt-16">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-cyan-900/20 via-[#0a0a0a] to-[#0a0a0a]" />
 
         {/* Abstract Grid Background */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px] mask-[radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
 
         <motion.div
           style={{ opacity, scale }}
@@ -85,7 +146,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="text-6xl md:text-8xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/50"
+            className="text-5xl md:text-8xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-linear-to-b from-white via-white to-white/50"
           >
             MASTER THE <br />
             <span className="text-cyan-400">HARDWARE.</span>
@@ -106,12 +167,12 @@ export default function Home() {
             transition={{ duration: 0.8, delay: 0.6 }}
             className="flex flex-col sm:flex-row items-center justify-center gap-4"
           >
-            <Link href="/learn" className="group relative px-8 py-4 bg-white text-black font-bold text-lg overflow-hidden transition-all hover:bg-cyan-400">
-              <span className="relative z-10 flex items-center gap-2">
+            <Link href="/learn" className="group relative px-8 py-4 bg-white text-black font-bold text-lg overflow-hidden transition-all hover:bg-cyan-400 w-full sm:w-auto">
+              <span className="relative z-10 flex items-center justify-center gap-2">
                 Start Learning <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </span>
             </Link>
-            <Link href="/blog" className="px-8 py-4 bg-transparent border border-white/20 text-white font-bold text-lg hover:bg-white/5 transition-colors">
+            <Link href="/blog" className="px-8 py-4 bg-transparent border border-white/20 text-white font-bold text-lg hover:bg-white/5 transition-colors w-full sm:w-auto">
               Explore Projects
             </Link>
           </motion.div>
@@ -123,13 +184,13 @@ export default function Home() {
           <div>CORE_TEMP: 42°C</div>
         </div>
         <div className="absolute bottom-10 right-10 hidden md:block opacity-30 font-mono text-xs text-right">
-          <div>MODULES_ACTIVE: 12</div>
+          <div>MODULES_ACTIVE: {chapters.reduce((acc, ch) => acc + (ch.modules?.length || 0), 0) || 12}</div>
           <div>SENSOR_DATA: STREAMING</div>
         </div>
       </section>
 
       {/* Levels Section */}
-      <section id="levels" className="py-32 relative bg-[#0a0a0a]">
+      <section id="levels" className="py-20 md:py-32 relative bg-[#0a0a0a]">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
             initial="hidden"
@@ -204,7 +265,7 @@ export default function Home() {
       </section>
 
       {/* The Product/Board Section */}
-      <section id="kit" className="py-32 bg-[#050505] border-y border-white/5">
+      <section id="kit" className="py-20 md:py-32 bg-[#050505] border-y border-white/5">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -243,10 +304,10 @@ export default function Home() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="relative aspect-square bg-gradient-to-br from-[#1a1a1a] to-black border border-white/10 flex items-center justify-center group overflow-hidden"
+            className="relative aspect-square bg-linear-to-br from-[#1a1a1a] to-black border border-white/10 flex items-center justify-center group overflow-hidden"
           >
             {/* Abstract visual for the board - replace with actual image later */}
-            <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(6,182,212,0.05)_50%,transparent_75%,transparent_100%)] bg-[length:250%_250%] animate-[shimmer_3s_infinite]" />
+            <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(6,182,212,0.05)_50%,transparent_75%,transparent_100%)] bg-size-[250%_250%] animate-[shimmer_3s_infinite]" />
             <div className="relative w-3/4 h-3/4 border border-cyan-500/20 bg-[#0a0a0a] flex items-center justify-center">
               <div className="absolute inset-0 grid grid-cols-6 grid-rows-6 gap-1 p-2 opacity-20">
                 {Array.from({ length: 36 }).map((_, i) => (
@@ -263,7 +324,7 @@ export default function Home() {
       </section>
 
       {/* Curriculum Preview Section */}
-      <section id="curriculum" className="py-32 relative">
+      <section id="curriculum" className="py-20 md:py-32 relative">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
             <div>
@@ -276,14 +337,12 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              { num: "01", title: "Getting Started", topics: "Setup, IDE Configuration, First Upload" },
-              { num: "02", title: "Digital I/O", topics: "Variables, Loops, Button Inputs, LED Control" },
-              { num: "03", title: "Analog World", topics: "Potentiometers, PWM, Light Sensors" },
-              { num: "04", title: "Communication", topics: "Serial Monitor, UART, Debugging" },
-              { num: "05", title: "Display Tech", topics: "OLED Libraries, Graphics, Text Rendering" },
-              { num: "06", title: "Motors & Motion", topics: "Servo Control, DC Motors, H-Bridges" },
-            ].map((chapter, i) => (
+            {(chapters.length > 0 ? chapters : [
+              { title: "Getting Started", modules: [{ title: "Setup, IDE Configuration, First Upload" }] },
+              { title: "Digital I/O", modules: [{ title: "Variables, Loops, Button Inputs, LED Control" }] },
+              { title: "Analog World", modules: [{ title: "Potentiometers, PWM, Light Sensors" }] },
+              { title: "Communication", modules: [{ title: "Serial Monitor, UART, Debugging" }] },
+            ]).map((chapter, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, y: 20 }}
@@ -292,13 +351,15 @@ export default function Home() {
                 transition={{ delay: i * 0.1 }}
                 className="block"
               >
-                <Link href="/learn" className="group flex gap-6 p-6 border border-white/5 hover:border-cyan-500/50 hover:bg-[#111] transition-all cursor-pointer">
+                <Link href="/learn" className="group flex gap-6 p-6 border border-white/5 hover:border-cyan-500/50 hover:bg-[#111] transition-all cursor-pointer h-full">
                   <span className="text-4xl font-bold text-white/10 group-hover:text-cyan-500/20 font-mono transition-colors">
-                    {chapter.num}
+                    {(i + 1).toString().padStart(2, '0')}
                   </span>
                   <div>
-                    <h3 className="text-xl font-bold mb-2 group-hover:text-cyan-400 transition-colors">{chapter.title}</h3>
-                    <p className="text-sm text-gray-500 font-mono">{chapter.topics}</p>
+                    <h3 className="text-xl font-bold mb-2 group-hover:text-cyan-400 transition-colors line-clamp-1">{chapter.title}</h3>
+                    <p className="text-sm text-gray-500 font-mono line-clamp-2">
+                      {chapter.modules ? chapter.modules.map((m: any) => m.title).slice(0, 3).join(", ") : "Loading..."}
+                    </p>
                   </div>
                   <div className="ml-auto flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <ArrowRight className="w-5 h-5 text-cyan-400" />

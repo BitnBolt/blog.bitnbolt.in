@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, FileText, Layers, LogOut, ExternalLink, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Layers, LogOut, ExternalLink, Menu, BookOpen } from 'lucide-react';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -28,6 +28,7 @@ export default function AdminLayout({ children, title, actions }: AdminLayoutPro
     const navItems = [
         { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
         { name: 'Categories', href: '/admin/categories', icon: Layers },
+        { name: 'Learn', href: '/admin/learn', icon: BookOpen },
     ];
 
     return (
@@ -57,8 +58,8 @@ export default function AdminLayout({ children, title, actions }: AdminLayoutPro
                                 key={item.href}
                                 href={item.href}
                                 className={`flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${isActive
-                                        ? 'bg-cyan-400/10 text-cyan-400 font-medium'
-                                        : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    ? 'bg-cyan-400/10 text-cyan-400 font-medium'
+                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
                                     }`}
                             >
                                 <item.icon className="w-5 h-5" />
